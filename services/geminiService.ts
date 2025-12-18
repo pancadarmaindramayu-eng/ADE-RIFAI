@@ -2,6 +2,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { StoryInput, Storyboard, Scene, ShortScript } from "../types.ts";
 import { CHARACTERS } from "../constants.ts";
 
+/**
+ * Generates a full documentary production package using Gemini 3 Pro.
+ */
 export const generateStoryboard = async (input: StoryInput): Promise<Storyboard> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const ratio = input.video_format === 'long' ? '16:9' : '9:16';
@@ -115,6 +118,9 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
   }
 };
 
+/**
+ * Generates a cinematic scene image using Gemini 2.5 Flash Image.
+ */
 export const generateSceneImage = async (scene: Scene, aspectRatio: string = "16:9", storyType: 'hybrid' | 'human' = 'human', previousSceneDesc?: string): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   let imagePrompt = "";
@@ -161,17 +167,22 @@ export const generateSceneImage = async (scene: Scene, aspectRatio: string = "16
   }
 };
 
+/**
+ * Generates an additional sequential scene using Gemini 3 Pro.
+ */
 export const generateAdditionalScene = async (storyboard: Storyboard, language: string): Promise<Scene> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const lastScene = storyboard.scenes[storyboard.scenes.length - 1];
+  const nextNumber = storyboard.scenes.length + 1;
   const prompt = `
-    Generate ONE additional sequential sequence for [${storyboard.story_type.toUpperCase()}].
-    CONTINUITY: Progress exactly from "${lastScene.actions}".
-    THESIS: Follow "${storyboard.metadata.thesis_statement}".
+    Generate ONE additional sequential sequence for a documentary.
+    STORY TYPE: [${storyboard.story_type.toUpperCase()}].
     LANGUAGE: ${language}.
+    CONTINUITY: Progress exactly from "${lastScene.actions}".
+    SCENE NUMBER: ${nextNumber}.
   `;
 
-  const sceneSchema = {
+  const responseSchema = {
     type: Type.OBJECT,
     properties: {
       scene_number: { type: Type.INTEGER },
@@ -191,41 +202,52 @@ export const generateAdditionalScene = async (storyboard: Storyboard, language: 
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
       contents: prompt,
-      config: { responseMimeType: "application/json", responseSchema: sceneSchema },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+      },
     });
 
     if (response.text) {
-      const data = JSON.parse(response.text);
-      data.scene_number = storyboard.scenes.length + 1;
-      return data as Scene;
+      return JSON.parse(response.text) as Scene;
     }
-    throw new Error("Sequential generation failed.");
+    throw new Error("Additional Scene Generation Failed.");
   } catch (error) {
+    console.error("V8 Engine Error (Additional Scene):", error);
     throw error;
   }
 };
 
+/**
+ * Generates a high-quality thumbnail image based on style and story context.
+ */
 export const generateThumbnailImage = async (
   styleId: string,
   title: string,
   summary: string,
-  characterNames: string[],
+  characters: string[],
   aspectRatio: string = "16:9",
   storyType: 'hybrid' | 'human' = 'human',
   sampleHook?: string
 ): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const activeCharacters = CHARACTERS.filter(c => characterNames.includes(c.name));
-  const characterContext = storyType === 'human' 
-    ? activeCharacters.map(c => `- ${c.name}: ${c.appearance}`).join('\n')
-    : "Professional documentary landscape.";
+  
+  let characterContext = "";
+  if (storyType === 'human' && characters.length > 0) {
+    const activeCharacters = CHARACTERS.filter(c => characters.includes(c.name));
+    characterContext = `FEATURING CHARACTERS: ${activeCharacters.map(c => `${c.name} (${c.appearance})`).join(', ')}`;
+  }
 
   const prompt = `
-    VIRAL THUMBNAIL [${storyType.toUpperCase()}]. 3D CLAY CINEMATIC.
-    TITLE HEADLINE: ${title}.
-    HOOK_REF: ${sampleHook || "High tension"}.
-    STYLE: ${styleId}. Minimal text, dramatic lighting, volumetric atmosphere.
-    Ratio: ${aspectRatio}.
+    MASTER DOCUMENTARY THUMBNAIL RENDER.
+    STYLE: ${styleId} (Refer to THUMBNAIL_STYLES logic).
+    RATIO: ${aspectRatio}.
+    STORY TITLE: "${title}".
+    SUMMARY: "${summary}".
+    ${characterContext}
+    ${sampleHook ? `USER HOOK PREFERENCE: "${sampleHook}"` : ""}
+    VISUAL REQUIREMENTS: 3D Clay Analytical style, cinematic lighting, high curiosity gap, 8k render.
+    STRICT: NO FLOATING TEXT. Minimalist but powerful visual storytelling.
   `;
 
   try {
@@ -238,8 +260,9 @@ export const generateThumbnailImage = async (
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
     }
-    throw new Error("Thumbnail generation failed.");
+    throw new Error("Thumbnail Render Failed.");
   } catch (error) {
+    console.error("Thumbnail Generation Error:", error);
     throw error;
   }
 };
