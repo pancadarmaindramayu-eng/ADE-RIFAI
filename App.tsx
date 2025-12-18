@@ -80,7 +80,8 @@ const App: React.FC = () => {
       const result = await generateStoryboard(formData);
       setStoryboard(result);
     } catch (err: any) {
-      setError(err.message || "V8 Engine failed. Check API quota or configuration.");
+      console.error("Submission Error:", err);
+      setError(err.message || "V8 Engine failed. Ensure the platform provides a valid API Key.");
     } finally {
       setLoading(false);
     }
