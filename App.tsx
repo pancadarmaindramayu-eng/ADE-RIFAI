@@ -4,7 +4,7 @@ import { SceneCard } from './components/SceneCard.tsx';
 import { MetadataDisplay } from './components/MetadataDisplay.tsx';
 import { ThumbnailGenerator } from './components/ThumbnailGenerator.tsx';
 import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/geminiService.ts';
-import { StoryInput, Storyboard, Scene, ShortScript, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types.ts';
+import { StoryInput, Storyboard, Scene, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types.ts';
 import { CHARACTERS } from './constants.ts';
 
 const App: React.FC = () => {
@@ -80,7 +80,7 @@ const App: React.FC = () => {
       const result = await generateStoryboard(formData);
       setStoryboard(result);
     } catch (err: any) {
-      setError(err.message || "V8 Engine failed. Check API quota.");
+      setError(err.message || "V8 Engine failed. Check API quota or configuration.");
     } finally {
       setLoading(false);
     }
