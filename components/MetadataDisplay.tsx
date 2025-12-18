@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { StoryMetadata } from '../types';
+import { StoryMetadata } from '../types.ts';
 
 interface MetadataDisplayProps {
   metadata: StoryMetadata;

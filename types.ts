@@ -13,12 +13,12 @@ export interface ShortScript {
   emotion: string;
   purpose: string;
   visual_logic: string;
-  video_production_prompt: string; // Detailed prompt for AI Video tools (Grok/Runway/Pika)
+  video_production_prompt: string;
 }
 
 export interface Scene {
   scene_number: number;
-  narrative_section: string; // "Hook", "Big Question", "Background", "Key Actors", "Point of No Return", "Cause-Effect", "Impact", "Relevance Today"
+  narrative_section: string;
   setting: string;
   dialog: string;
   actions: string;

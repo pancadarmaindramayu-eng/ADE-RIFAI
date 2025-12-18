@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
-import { Header } from './components/Header';
-import { SceneCard } from './components/SceneCard';
-import { MetadataDisplay } from './components/MetadataDisplay';
-import { ThumbnailGenerator } from './components/ThumbnailGenerator';
-import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/geminiService';
-import { StoryInput, Storyboard, Scene, ShortScript, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types';
-import { CHARACTERS } from './constants';
+import { Header } from './components/Header.tsx';
+import { SceneCard } from './components/SceneCard.tsx';
+import { MetadataDisplay } from './components/MetadataDisplay.tsx';
+import { ThumbnailGenerator } from './components/ThumbnailGenerator.tsx';
+import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/geminiService.ts';
+import { StoryInput, Storyboard, Scene, ShortScript, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types.ts';
+import { CHARACTERS } from './constants.ts';
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<StoryInput>({
@@ -168,7 +168,7 @@ const App: React.FC = () => {
                 <form onSubmit={handleSubmit} className="bg-slate-900/60 backdrop-blur-2xl p-12 rounded-[3.5rem] border border-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.5)] space-y-12">
                     <div className="space-y-6">
                         <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] block text-center">Engine Logic Selection</label>
-                        <div className="flex bg-slate-950 p-2 rounded-2xl w-full max-w-md mx-auto border border-slate-800 shadow-inner">
+                        <div className="flex bg-slate-950 p-2 rounded-2xl w-full max-md mx-auto border border-slate-800 shadow-inner">
                             <button type="button" onClick={() => handleStoryTypeChange('human')} className={`flex-1 flex flex-col items-center gap-1 py-4 rounded-xl transition-all ${formData.story_type === 'human' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>
                                 <span className="text-sm font-black uppercase tracking-tighter">Human Analytical</span>
                                 <span className="text-[9px] opacity-70 font-bold uppercase tracking-widest">DNA Consistency</span>
@@ -374,7 +374,7 @@ const App: React.FC = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Visual Data Logic (PolyMatter style)</label>
-                                    <textarea placeholder="Poin data untuk diintegrasikan secara organik (Chart/Map)..." className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white font-bold outline-none h-24" value={manualScene.visual_notes} onChange={e => setManualScene({...manualScene, visual_notes: setManualScene({...manualScene, visual_notes: e.target.value})})} />
+                                    <textarea placeholder="Poin data untuk diintegrasikan secara organik (Chart/Map)..." className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white font-bold outline-none h-24" value={manualScene.visual_notes} onChange={e => setManualScene({...manualScene, visual_notes: e.target.value})} />
                                 </div>
                                 <button onClick={handleAddSceneManual} className="w-full py-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[1.5rem] font-black text-lg uppercase shadow-2xl transition-all">Add Documentary Segment</button>
                             </div>

@@ -1,11 +1,10 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { StoryInput, Storyboard, Scene, ShortScript } from "../types";
-import { CHARACTERS } from "../constants";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { StoryInput, Storyboard, Scene, ShortScript } from "../types.ts";
+import { CHARACTERS } from "../constants.ts";
 
 export const generateStoryboard = async (input: StoryInput): Promise<Storyboard> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const ratio = input.video_format === 'long' ? '16:9' : '9:16';
   
   const systemInstruction = `
@@ -118,6 +117,7 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
 };
 
 export const generateSceneImage = async (scene: Scene, aspectRatio: string = "16:9", storyType: 'hybrid' | 'human' = 'human', previousSceneDesc?: string): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   let imagePrompt = "";
   
   if (storyType === 'hybrid') {
@@ -163,6 +163,7 @@ export const generateSceneImage = async (scene: Scene, aspectRatio: string = "16
 };
 
 export const generateAdditionalScene = async (storyboard: Storyboard, language: string): Promise<Scene> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const lastScene = storyboard.scenes[storyboard.scenes.length - 1];
   const prompt = `
     Generate ONE additional sequential sequence for [${storyboard.story_type.toUpperCase()}].
@@ -214,6 +215,7 @@ export const generateThumbnailImage = async (
   storyType: 'hybrid' | 'human' = 'human',
   sampleHook?: string
 ): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const activeCharacters = CHARACTERS.filter(c => characterNames.includes(c.name));
   const characterContext = storyType === 'human' 
     ? activeCharacters.map(c => `- ${c.name}: ${c.appearance}`).join('\n')

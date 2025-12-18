@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { THUMBNAIL_STYLES, Storyboard } from '../types';
-import { generateThumbnailImage } from '../services/geminiService';
+import { THUMBNAIL_STYLES, Storyboard } from '../types.ts';
+import { generateThumbnailImage } from '../services/geminiService.ts';
 
 interface ThumbnailGeneratorProps {
   storyboard: Storyboard;
@@ -59,7 +59,7 @@ export const ThumbnailGenerator: React.FC<ThumbnailGeneratorProps> = ({ storyboa
         <div className="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h3 className="text-white font-black text-2xl flex items-center gap-3">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               Master Documentary Thumbnails (16:9)
             </h3>
             <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1">Curiosity-driven landscape framing</p>
