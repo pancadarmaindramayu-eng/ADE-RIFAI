@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
 import { SceneCard } from './components/SceneCard.tsx';
 import { MetadataDisplay } from './components/MetadataDisplay.tsx';
@@ -8,7 +8,23 @@ import { generateStoryboard, generateSceneImage, generateAdditionalScene } from 
 import { StoryInput, Storyboard, Scene, ShortScript, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types.ts';
 import { CHARACTERS } from './constants.ts';
 
+// Extension to window for AI Studio API Key Selection
+// Fix: Use the AIStudio interface name and declare it globally to match existing definitions in the environment.
+declare global {
+  interface AIStudio {
+    hasSelectedApiKey: () => Promise<boolean>;
+    openSelectKey: () => Promise<void>;
+  }
+
+  interface Window {
+    aistudio: AIStudio;
+  }
+}
+
 const App: React.FC = () => {
+  const [hasKey, setHasKey] = useState<boolean>(true);
+  const [isCheckingKey, setIsCheckingKey] = useState<boolean>(true);
+
   const [formData, setFormData] = useState<StoryInput>({
     input_type: 'concept',
     story_type: 'hybrid',
@@ -40,6 +56,28 @@ const App: React.FC = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [generatingMaster, setGeneratingMaster] = useState(false);
+
+  useEffect(() => {
+    const checkApiKey = async () => {
+      if (window.aistudio) {
+        try {
+          const selected = await window.aistudio.hasSelectedApiKey();
+          setHasKey(selected);
+        } catch (e) {
+          console.error("Error checking API key:", e);
+        }
+      }
+      setIsCheckingKey(false);
+    };
+    checkApiKey();
+  }, []);
+
+  const handleSelectKey = async () => {
+    if (window.aistudio) {
+      await window.aistudio.openSelectKey();
+      setHasKey(true); // Assume success per guidelines
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -81,7 +119,13 @@ const App: React.FC = () => {
       const result = await generateStoryboard(formData);
       setStoryboard(result);
     } catch (err: any) {
-      setError(err.message || "V8 Engine failed. Check API quota.");
+      const msg = err.message || "";
+      if (msg.includes("Requested entity was not found") || msg.includes("API Key")) {
+        setHasKey(false);
+        setError("API Key configuration required. Please select a valid API key.");
+      } else {
+        setError(msg || "V8 Engine failed. Check API quota.");
+      }
     } finally {
       setLoading(false);
     }
@@ -139,6 +183,10 @@ const App: React.FC = () => {
     setStoryboard({ ...storyboard, scenes: newScenes });
   };
 
+  const handleUpdateStoryboard = (updatedStoryboard: Storyboard) => {
+    setStoryboard(updatedStoryboard);
+  };
+
   const handleGenerateMasterOnly = async () => {
     if (!storyboard) return;
     setGeneratingMaster(true);
@@ -153,6 +201,34 @@ const App: React.FC = () => {
         setGeneratingMaster(false);
     }
   };
+
+  if (isCheckingKey) {
+    return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-white font-black uppercase tracking-widest">Initializing V8 Engine...</div>;
+  }
+
+  if (!hasKey) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6">
+        <div className="bg-slate-900 p-12 rounded-[3rem] border border-slate-800 max-w-xl w-full text-center space-y-8 shadow-2xl">
+          <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] mx-auto flex items-center justify-center shadow-[0_0_30px_rgba(79,70,229,0.5)]">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <div className="space-y-4">
+            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">API Key Required</h2>
+            <p className="text-slate-400 font-medium">To use the V8 Documentary Engine, you must select an API key from a paid GCP project.</p>
+            <p className="text-indigo-400 text-xs font-black uppercase tracking-widest">
+              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="hover:underline">View Billing Documentation</a>
+            </p>
+          </div>
+          <button onClick={handleSelectKey} className="w-full bg-white text-black py-6 rounded-2xl font-black text-lg uppercase transition-all hover:bg-slate-200">
+            Select API Key
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#020617] pb-24 selection:bg-indigo-500/30">
