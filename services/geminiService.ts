@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { StoryInput, Storyboard, Scene, ShortScript } from "../types.ts";
 import { CHARACTERS } from "../constants.ts";
