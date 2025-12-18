@@ -3,9 +3,27 @@ import { Header } from './components/Header.tsx';
 import { SceneCard } from './components/SceneCard.tsx';
 import { MetadataDisplay } from './components/MetadataDisplay.tsx';
 import { ThumbnailGenerator } from './components/ThumbnailGenerator.tsx';
-import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/geminiService.ts';
 import { StoryInput, Storyboard, Scene, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types.ts';
 import { CHARACTERS } from './constants.ts';
+
+/* =========================
+   CLIENT → SERVER API CALLS
+   ========================= */
+
+async function postJSON<T>(url: string, body: any): Promise<T> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Server execution failed' }));
+    throw new Error(err.error || 'Server execution failed');
+  }
+
+  return res.json();
+}
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<StoryInput>({
@@ -25,18 +43,7 @@ const App: React.FC = () => {
   const [storyboard, setStoryboard] = useState<Storyboard | null>(null);
   const [loading, setLoading] = useState(false);
   const [addingScene, setAddingScene] = useState(false);
-  const [isManualAdding, setIsManualAdding] = useState(false);
   const [copiedPromptId, setCopiedPromptId] = useState<number | null>(null);
-  const [manualScene, setManualScene] = useState<Partial<Scene>>({
-    narrative_section: '',
-    setting: '',
-    actions: '',
-    dialog: '',
-    visual_notes: '',
-    emotion: 'Neutral',
-    characters: []
-  });
-
   const [error, setError] = useState<string | null>(null);
   const [generatingMaster, setGeneratingMaster] = useState(false);
 
@@ -71,17 +78,20 @@ const App: React.FC = () => {
     });
   };
 
+  /* =========================
+     GENERATE STORYBOARD
+     ========================= */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setStoryboard(null);
     try {
-      const result = await generateStoryboard(formData);
+      const result = await postJSON<Storyboard>('/api/generate', formData);
       setStoryboard(result);
     } catch (err: any) {
       console.error("Submission Error:", err);
-      setError(err.message || "V8 Engine failed. Ensure the platform provides a valid API Key.");
+      setError(err.message || "V8 Engine failed. Ensure the server-side API is correctly configured.");
     } finally {
       setLoading(false);
     }
@@ -93,44 +103,27 @@ const App: React.FC = () => {
     setTimeout(() => setCopiedPromptId(null), 2000);
   };
 
+  /* =========================
+     ADD SCENE
+     ========================= */
   const handleAddSceneAI = async () => {
     if (!storyboard) return;
     setAddingScene(true);
     try {
-      const newScene = await generateAdditionalScene(storyboard, formData.language);
+      const newScene = await postJSON<Scene>('/api/extend', {
+        storyboard,
+        language: formData.language,
+      });
       setStoryboard({
         ...storyboard,
         scenes: [...storyboard.scenes, newScene]
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("AI Sequential Addition Failed.");
+      setError(err.message || "AI Sequential Addition Failed.");
     } finally {
       setAddingScene(false);
     }
-  };
-
-  const handleAddSceneManual = () => {
-    if (!storyboard) return;
-    const nextNum = storyboard.scenes.length + 1;
-    const scene: Scene = {
-        scene_number: nextNum,
-        narrative_section: manualScene.narrative_section || "Sequential Analysis",
-        setting: manualScene.setting || "Internal Environment",
-        actions: manualScene.actions || "Data progression in progress",
-        dialog: manualScene.dialog || "Voice over content here",
-        visual_notes: manualScene.visual_notes || "Fact-rich visual logic",
-        emotion: manualScene.emotion || "Analytical",
-        characters: formData.story_type === 'human' ? (manualScene.characters && manualScene.characters.length > 0 ? manualScene.characters : formData.selected_characters) : [],
-        ctr_message: "Stay tuned for further geopolitical insight."
-    };
-    
-    setStoryboard({
-        ...storyboard,
-        scenes: [...storyboard.scenes, scene]
-    });
-    setIsManualAdding(false);
-    setManualScene({ narrative_section: '', setting: '', actions: '', dialog: '', visual_notes: '', emotion: 'Neutral', characters: [] });
   };
 
   const handleUpdateScene = (updatedScene: Scene) => {
@@ -139,16 +132,24 @@ const App: React.FC = () => {
     setStoryboard({ ...storyboard, scenes: newScenes });
   };
 
+  /* =========================
+     GENERATE MASTER IMAGE
+     ========================= */
   const handleGenerateMasterOnly = async () => {
     if (!storyboard) return;
     setGeneratingMaster(true);
     const scene1 = storyboard.scenes[0];
     try {
         const ratio = formData.video_format === 'long' ? '16:9' : '9:16';
-        const url = await generateSceneImage(scene1, ratio, storyboard.story_type);
+        const url = await postJSON<string>('/api/image', {
+          scene: scene1,
+          ratio,
+          storyType: storyboard.story_type,
+        });
         handleUpdateScene({ ...scene1, visual_image: url });
-    } catch (e) {
-        console.error("Master image generation failed", e);
+    } catch (err: any) {
+        console.error("Master image generation failed", err);
+        setError(err.message || "Master image generation failed.");
     } finally {
         setGeneratingMaster(false);
     }
@@ -296,8 +297,6 @@ const App: React.FC = () => {
                     </div>
                 )}
 
-                <ThumbnailGenerator storyboard={storyboard} sampleHook={formData.thumbnail_sample} />
-
                 <div className="flex flex-col md:flex-row justify-between items-center gap-10 border-b border-slate-800 pb-16">
                     <div className="text-center md:text-left flex-1">
                         <div className="flex items-center gap-4 justify-center md:justify-start mb-4">
@@ -329,58 +328,16 @@ const App: React.FC = () => {
                     ))}
                     
                     <div className="flex flex-col items-center gap-12 pt-10">
-                        {!isManualAdding ? (
-                            <div className="flex flex-col md:flex-row gap-6 w-full max-w-4xl">
-                                <button onClick={handleAddSceneAI} disabled={addingScene} className="flex-1 group flex flex-col items-center gap-4 p-10 bg-slate-900/50 border-2 border-dashed border-slate-700 rounded-[3rem] hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all">
-                                  <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center">
-                                    {addingScene ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>}
-                                  </div>
-                                  <span className="text-lg font-black text-white uppercase tracking-tighter">AI Sequential Extend</span>
-                                </button>
-                                <button onClick={() => setIsManualAdding(true)} className="flex-1 group flex flex-col items-center gap-4 p-10 bg-slate-900/50 border-2 border-dashed border-slate-700 rounded-[3rem] hover:border-pink-500/50 hover:bg-pink-500/5 transition-all">
-                                  <div className="w-16 h-16 rounded-2xl bg-pink-600 flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                  </div>
-                                  <span className="text-lg font-black text-white uppercase tracking-tighter">Manual Sequence</span>
-                                </button>
+                        <button onClick={handleAddSceneAI} disabled={addingScene} className="w-full max-w-4xl group flex flex-col items-center gap-4 p-12 bg-slate-900/50 border-2 border-dashed border-slate-700 rounded-[3rem] hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all">
+                            <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center">
+                                {addingScene ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>}
                             </div>
-                        ) : (
-                            <div className="w-full max-w-4xl bg-slate-900 border border-slate-800 p-12 rounded-[3.5rem] shadow-2xl space-y-8 animate-fade-in">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Add Documentary Segment</h3>
-                                    <button onClick={() => setIsManualAdding(false)} className="text-slate-500 hover:text-white font-black text-sm uppercase">Cancel</button>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Narrative Section</label>
-                                        <input type="text" placeholder="e.g. Cause-Effect Chain / Future Echo" className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white font-bold outline-none" value={manualScene.narrative_section} onChange={e => setManualScene({...manualScene, narrative_section: e.target.value})} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Emotion/Vibe</label>
-                                        <input type="text" placeholder="e.g. Controlled Tension" className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white font-bold outline-none" value={manualScene.emotion} onChange={e => setManualScene({...manualScene, emotion: e.target.value})} />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Setting / Thesis Point</label>
-                                    <input type="text" placeholder="e.g. Geopolitical Map / Industrial Zone" className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white font-bold outline-none" value={manualScene.setting} onChange={e => setManualScene({...manualScene, setting: e.target.value})} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sequential Action (Doc Flow)</label>
-                                    <textarea placeholder="Melanjutkan visual sebelumnya secara berkesinambungan..." className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white font-bold outline-none h-24" value={manualScene.actions} onChange={e => setManualScene({...manualScene, actions: e.target.value})} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Doc Script (Pace: 140 WPM)</label>
-                                    <textarea placeholder="Tulis narasi dokumenter profesional..." className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white font-bold outline-none h-24" value={manualScene.dialog} onChange={e => setManualScene({...manualScene, dialog: e.target.value})} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Visual Data Logic (PolyMatter style)</label>
-                                    <textarea placeholder="Poin data untuk diintegrasikan secara organik (Chart/Map)..." className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white font-bold outline-none h-24" value={manualScene.visual_notes} onChange={e => setManualScene({...manualScene, visual_notes: e.target.value})} />
-                                </div>
-                                <button onClick={handleAddSceneManual} className="w-full py-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[1.5rem] font-black text-lg uppercase shadow-2xl transition-all">Add Documentary Segment</button>
-                            </div>
-                        )}
+                            <span className="text-xl font-black text-white uppercase tracking-tighter">AI Sequential Extend</span>
+                        </button>
                     </div>
                 </div>
+
+                <ThumbnailGenerator storyboard={storyboard} sampleHook={formData.thumbnail_sample} />
             </div>
         )}
       </main>

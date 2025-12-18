@@ -1,8 +1,19 @@
-
 import React, { useState } from 'react';
 import { Scene } from '../types.ts';
-import { generateSceneImage } from '../services/geminiService.ts';
-import { CHARACTERS } from '../constants.ts';
+
+/* Helper for server API calls */
+async function postJSON<T>(url: string, body: any): Promise<T> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Server execution failed' }));
+    throw new Error(err.error || 'Server execution failed');
+  }
+  return res.json();
+}
 
 interface SceneCardProps {
   scene: Scene;
@@ -13,168 +24,77 @@ interface SceneCardProps {
 }
 
 export const SceneCard: React.FC<SceneCardProps> = ({ scene, onUpdateScene, ratio, storyType = 'human', previousScene }) => {
-  const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [rendering, setRendering] = useState(false);
 
-  const isMasterScene = scene.scene_number === 1;
-
-  // Non-negotiable VO Profile
-  const voProfile = "STRICT: Male, 35–45, Neutral International English. Calm, authoritative, analytical, documentary narrator style. Pace: 140 WPM. Tone: controlled, serious, subtle tension. NO BACKGROUND MUSIC.";
-
-  const handleGenerateImage = async () => {
-    setLoading(true);
+  const handleRender = async () => {
+    setRendering(true);
     try {
-      const imageUrl = await generateSceneImage(scene, ratio, storyType as 'hybrid' | 'human', previousScene?.actions);
-      onUpdateScene({ ...scene, visual_image: imageUrl });
+      const url = await postJSON<string>('/api/image', {
+        scene,
+        ratio,
+        storyType
+      });
+      onUpdateScene({ ...scene, visual_image: url });
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      setRendering(false);
     }
   };
 
-  const copyGrokPrompt = () => {
-    const modeLabel = storyType === 'hybrid' ? 'HYBRID DOCUMENTARY V8' : 'CHARACTER DNA DOC';
-    
-    const sequentialLogic = previousScene 
-      ? `\n[SEQUENTIAL PROGRESSION]: Scene ${scene.scene_number} - Melanjutkan alur visual dari: "${previousScene.actions}". JANGAN reset ke master image.` 
-      : `\n[MASTER THESIS OPENING]: Scene 1 - Hook Tesis Utama.`;
-
-    const hybridRules = `\n[ELEGANT DOC RULES]:
-- World/Regional maps for geopolitical context.
-- 3D abstract charts for data (No numbers).
-- Sequential progression logic.
-- Cinematic industrial/urban environments.
-- Minimal professional typography.`;
-
-    const fullPrompt = `STRICT PRODUCTION PACK [${modeLabel}]: 3D CLAY CINEMATIC. RATIO ${ratio}.${sequentialLogic}${storyType === 'hybrid' ? hybridRules : '\n[DNA]: Konsistensi wajah, hijab, dan kumis asimetris Pap identik 100%.'}
-
-[LOKASI & AKSI]:
-SECTION: ${scene.narrative_section}
-LOKASI: ${scene.setting}
-AKSI (6s): ${scene.actions}
-
-[VISUAL DATA]: 
-- KONTEKS: "${scene.visual_notes}"
-- INTEGRATION: No floating text. Minimal typography integrated organically.
-
-[AUDIO NARASI]:
-${voProfile}
-NASKAH: "${scene.dialog}"
-STRICT: TANPA BACKSOUND MUSIC (VO ONLY).
-
-[ANTI-CHANGE VOICE LOCK]:
-- Maintain one consistent voice
-- Calm, authoritative documentary narrator
-- Neutral international English accent
-- Do NOT alter tone, pace, or emotion`;
-    
-    navigator.clipboard.writeText(fullPrompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownload = () => {
-      if (!scene.visual_image) return;
-      const link = document.createElement('a');
-      link.href = scene.visual_image;
-      link.download = `scene_${scene.scene_number}.png`;
-      link.click();
-  };
-
   return (
-    <div className={`bg-slate-900 rounded-[3rem] overflow-hidden border ${isMasterScene ? 'border-indigo-500 ring-4 ring-indigo-500/20 shadow-2xl' : 'border-slate-800'} flex flex-col md:flex-row relative transition-all group`}>
-      
-      <div className={`relative bg-slate-950 ${ratio === '9:16' ? 'md:w-1/3 max-w-[340px]' : 'md:w-1/3 lg:w-2/5'}`}>
-        <div className={`w-full relative overflow-hidden ${ratio === '9:16' ? 'aspect-[9/16]' : 'aspect-video'}`}>
+    <div className="glass-panel rounded-[2rem] overflow-hidden flex flex-col md:flex-row border-slate-800/50 group">
+      <div className={`relative bg-slate-950/50 ${ratio === '9:16' ? 'md:w-[280px]' : 'md:w-1/3 lg:w-2/5'}`}>
+        <div className={`w-full relative ${ratio === '9:16' ? 'aspect-[9/16]' : 'aspect-video'}`}>
           {scene.visual_image ? (
-            <img src={scene.visual_image} alt="Context" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img src={scene.visual_image} alt="Visual" className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-700" />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 bg-slate-950 p-12 text-center">
-               <div className={`w-24 h-24 rounded-[2.5rem] border-2 border-dashed ${isMasterScene ? 'border-indigo-500/40' : 'border-slate-800'} flex items-center justify-center mb-8 bg-slate-900`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-12 w-12 ${isMasterScene ? 'text-indigo-500' : 'text-slate-700'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-               </div>
-               <span className="text-xs font-black uppercase tracking-[0.4em] text-slate-600">
-                 {storyType === 'hybrid' ? 'Elegant V8 Sequence' : 'DNA Sequence Frame'}
-               </span>
+            <div className="w-full h-full flex flex-col items-center justify-center text-slate-700 p-8 text-center bg-slate-950">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Awaiting Render</span>
             </div>
           )}
           
-          <div className="absolute inset-0 bg-black/90 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-6 backdrop-blur-3xl p-10">
-            <button onClick={handleGenerateImage} disabled={loading} className="w-full py-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[1.5rem] font-black text-sm shadow-2xl transition-all">
-              {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div> : `RENDER ${storyType.toUpperCase()} IMAGE`}
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+            <button 
+              onClick={handleRender} 
+              disabled={rendering}
+              className="bg-white text-black px-6 py-3 rounded-xl font-bold text-xs shadow-xl transition-all hover:scale-105 active:scale-95"
+            >
+              {rendering ? "Rendering..." : "Generate Scene Visual"}
             </button>
-            <button onClick={copyGrokPrompt} className="w-full py-6 bg-white text-black hover:bg-slate-100 rounded-[1.5rem] font-black text-sm transition-all">
-              {copied ? 'PROMPT COPIED!' : 'COPY PRODUCTION PROMPT'}
-            </button>
-            {scene.visual_image && (
-                <button onClick={handleDownload} className="w-full py-6 bg-slate-800 hover:bg-slate-700 text-white rounded-[1.5rem] font-black text-sm border border-slate-700">
-                    DOWNLOAD IMAGE
-                </button>
-            )}
           </div>
         </div>
-        <div className="absolute top-8 left-8 flex flex-col gap-2">
-            <div className={`px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] border shadow-2xl ${isMasterScene ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-slate-950 border-slate-800 text-slate-500'}`}>
-              {isMasterScene ? 'MASTER' : `SEGMEN ${scene.scene_number}`}
-            </div>
-            <div className="px-4 py-1 bg-slate-900/80 backdrop-blur-md border border-slate-700 text-[8px] font-black uppercase tracking-widest text-indigo-400 rounded-lg">
-                {scene.narrative_section}
-            </div>
+        <div className="absolute top-6 left-6 flex flex-col gap-2">
+          <span className="bg-indigo-600 text-white text-[10px] font-black px-4 py-1.5 rounded-lg shadow-lg">SCENE {scene.scene_number}</span>
+          <span className="bg-slate-900/80 backdrop-blur text-slate-400 text-[9px] font-bold px-3 py-1 rounded-lg border border-white/5">{scene.narrative_section}</span>
         </div>
       </div>
 
-      <div className="p-12 flex-1 flex flex-col gap-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div className="space-y-4">
-                <h3 className="text-indigo-400 text-[10px] uppercase tracking-[0.5em] font-black flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.6)]"></span>
-                    Doc Context
-                </h3>
-                <div className="bg-slate-950 p-6 rounded-[2rem] border border-slate-800 shadow-inner">
-                    <p className="text-white text-lg font-black mb-2 tracking-tight leading-tight">{scene.setting}</p>
-                    <p className="text-slate-500 text-[11px] font-bold leading-relaxed italic">{scene.actions}</p>
-                </div>
+      <div className="p-10 flex-1 flex flex-col">
+        <div className="flex flex-col gap-6 flex-grow">
+          <div className="space-y-2">
+            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Atmosphere</span>
+            <p className="text-white text-xl font-bold leading-tight">{scene.setting}</p>
+          </div>
+          
+          <div className="space-y-4">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Narration Script</span>
+            <div className="bg-slate-950/50 p-6 rounded-2xl border border-slate-800 italic font-serif text-slate-300 leading-relaxed text-lg">
+              "{scene.dialog}"
             </div>
-            <div className="space-y-4">
-                <h3 className="text-pink-400 text-[10px] uppercase tracking-[0.5em] font-black flex items-center gap-3">
-                    <span className="w-3 h-3 rounded-full bg-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.6)]"></span>
-                    Visual Data Thesis
-                </h3>
-                <div className="bg-pink-950/10 p-6 rounded-[2rem] border border-pink-500/20">
-                    <p className="text-pink-100/90 text-[11px] leading-relaxed font-black">"${scene.visual_notes}"</p>
-                    <div className="mt-3 text-[9px] text-pink-500/60 font-black uppercase tracking-widest">Analyson v8.0 • PolyMatter Mode</div>
-                </div>
-            </div>
-        </div>
+          </div>
 
-        <div className="space-y-4">
-            <h3 className="text-indigo-400 text-[10px] uppercase tracking-[0.5em] font-black flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full bg-indigo-500"></span>
-                Strict Consistent VO
-            </h3>
-            <div className="bg-slate-950 border-l-[8px] border-indigo-600 p-8 rounded-r-[2.5rem] shadow-2xl relative overflow-hidden">
-                <p className="text-white italic font-serif leading-relaxed text-2xl relative z-10 font-medium">"{scene.dialog}"</p>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <span className="px-3 py-1 bg-indigo-500 text-white text-[9px] font-black uppercase tracking-widest rounded-lg">VO LOCK: Male Documentary Narrator</span>
-                    <span className="px-3 py-1 bg-slate-800 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-lg">STRICT: NO MUSIC</span>
-                    {isMasterScene && <span className="px-3 py-1 bg-pink-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg">MYSTERY HOOK</span>}
-                </div>
+          <div className="grid grid-cols-2 gap-6 pt-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Emotion</span>
+              <p className="text-white font-bold text-sm">{scene.emotion}</p>
             </div>
-        </div>
-
-        <div className="mt-auto pt-8 border-t border-slate-800 flex items-start gap-8">
-             <div className="flex-shrink-0 w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg transform -rotate-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.106-1.79V10.333z" />
-                </svg>
-             </div>
-             <div className="flex-1">
-                <span className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.5em] block mb-2">Sequential Hook</span>
-                <p className="text-white text-lg font-black italic tracking-tight">"{scene.ctr_message}"</p>
-             </div>
+            <div className="space-y-1 text-right">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hook</span>
+              <p className="text-indigo-400 font-bold text-sm italic">"{scene.ctr_message}"</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
