@@ -43,6 +43,7 @@ const App: React.FC = () => {
   const [isManualAdding, setIsManualAdding] = useState(false);
   const [copiedPromptId, setCopiedPromptId] = useState<number | null>(null);
   const [copiedNarrativeId, setCopiedNarrativeId] = useState<number | null>(null);
+  const [copiedTitleId, setCopiedTitleId] = useState<number | null>(null);
   
   const [manualScene, setManualScene] = useState<Partial<Scene>>({
     narrative_section: '',
@@ -123,6 +124,12 @@ const App: React.FC = () => {
     navigator.clipboard.writeText(narration);
     setCopiedNarrativeId(id);
     setTimeout(() => setCopiedNarrativeId(null), 2000);
+  };
+
+  const copyShortTitle = (title: string, id: number) => {
+    navigator.clipboard.writeText(title);
+    setCopiedTitleId(id);
+    setTimeout(() => setCopiedTitleId(null), 2000);
   };
 
   const handleAddSceneAI = async () => {
@@ -294,9 +301,9 @@ const App: React.FC = () => {
                         </div>
                         <h3 className="text-white font-black text-2xl mb-2 flex items-center gap-4">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                            Viral Shorts Scripts (V9 Strategic Intent)
+                            Viral Shorts Suite (SEO Optimized)
                         </h3>
-                        <p className="text-slate-500 text-sm font-bold uppercase tracking-[0.2em] mb-10">Setiap Short memiliki Intent Strategis (Curiosity / Controversy / Shock)</p>
+                        <p className="text-slate-500 text-sm font-bold uppercase tracking-[0.2em] mb-10">Setiap Short memiliki Judul & Hashtag dengan Skor SEO Terbaik</p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {storyboard.shorts.map((short, i) => (
@@ -304,12 +311,30 @@ const App: React.FC = () => {
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="flex flex-col">
                                            <span className="text-pink-500 font-black text-xs uppercase tracking-widest">Short #{short.id}</span>
-                                           <span className="text-slate-600 font-black text-[9px] uppercase tracking-widest">{short.short_intent || 'CURIOSITY'}</span>
+                                           <span className="text-slate-600 font-black text-[9px] uppercase tracking-widest">{short.short_intent?.replace('_', ' ') || 'CURIOSITY'}</span>
                                         </div>
                                         <div className="px-3 py-1 bg-slate-900 rounded-lg text-[8px] font-black text-slate-500 uppercase">{short.emotion}</div>
                                     </div>
+
+                                    {/* SEO Title Box */}
+                                    <div className="mb-6 space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">SEO Optimized Title</span>
+                                            <button onClick={() => copyShortTitle(short.title, short.id)} className="text-[9px] font-black text-slate-500 hover:text-white uppercase transition-colors">
+                                                {copiedTitleId === short.id ? 'Copied' : 'Copy Title'}
+                                            </button>
+                                        </div>
+                                        <h4 className="text-white text-lg font-black leading-tight tracking-tight">{short.title}</h4>
+                                    </div>
                                     
                                     <p className="text-white text-xl italic font-serif leading-relaxed flex-grow mb-8">"{short.narration}"</p>
+
+                                    {/* Hashtags Display */}
+                                    <div className="flex flex-wrap gap-2 mb-8">
+                                        {short.hashtags?.map(tag => (
+                                            <span key={tag} className="px-3 py-1 bg-slate-900 rounded-full text-[10px] font-black text-pink-400 border border-pink-500/10 uppercase tracking-widest">{tag}</span>
+                                        ))}
+                                    </div>
                                     
                                     <div className="space-y-4 pt-6 border-t border-slate-800/50">
                                         <div className="bg-slate-900/50 p-4 rounded-2xl space-y-3">

@@ -31,13 +31,15 @@ export interface SeoAnalysis {
 
 export interface ShortScript {
   id: number;
+  title: string;
+  hashtags: string[];
   narration: string;
   emotion: string;
   purpose: string;
   visual_logic: string;
   video_production_prompt: string;
   source_scene?: number;
-  short_intent: 'THE_COST' | 'THE_IRONY' | 'HIDDEN_CLAUSE' | 'CURIOSITY';
+  short_intent: 'THE_COST' | 'THE_IRONY' | 'HIDDEN_CLAUSE' | 'CURIOSITY' | 'SYSTEMIC_SHIFT' | 'HUMAN_ECHO' | 'FUTURE_TRAP';
 }
 
 export interface Scene {
