@@ -5,18 +5,11 @@ import { CHARACTERS } from "../constants.ts";
 /**
  * World-Class Documentary Engine API Layer
  * This service handles all generative AI interactions using the correct SDK pattern.
+ * It creates a new instance for each call to ensure the most up-to-date API key is used.
  */
 
-const getAIClient = () => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing AI API Key. Please check your environment configuration.");
-  }
-  return new GoogleGenAI({ apiKey });
-};
-
 export const generateStoryboard = async (input: StoryInput): Promise<Storyboard> => {
-  const ai = getAIClient();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const ratio = input.video_format === 'long' ? '16:9' : '9:16';
   
   const systemInstruction = `
@@ -100,7 +93,7 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
 };
 
 export const generateSceneImage = async (scene: Scene, aspectRatio: string, storyType: string): Promise<string> => {
-  const ai = getAIClient();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   let imagePrompt = "";
   if (storyType === 'hybrid') {
@@ -140,7 +133,7 @@ export const generateSceneImage = async (scene: Scene, aspectRatio: string, stor
 };
 
 export const generateAdditionalScene = async (storyboard: Storyboard, language: string): Promise<Scene> => {
-  const ai = getAIClient();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const lastScene = storyboard.scenes[storyboard.scenes.length - 1];
   
   const prompt = `
@@ -185,7 +178,7 @@ export const generateThumbnailImage = async (
   storyType: string,
   sampleHook?: string
 ): Promise<string> => {
-  const ai = getAIClient();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const characterContext = CHARACTERS.filter(c => chars.includes(c.name)).map(c => c.appearance).join(', ');
 
   const prompt = `
