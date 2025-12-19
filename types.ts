@@ -37,12 +37,12 @@ export interface ShortScript {
   visual_logic: string;
   video_production_prompt: string;
   source_scene?: number;
-  short_intent: 'CURIOSITY' | 'CONTROVERSY' | 'FUTURE_SHOCK';
+  short_intent: 'THE_COST' | 'THE_IRONY' | 'HIDDEN_CLAUSE' | 'CURIOSITY';
 }
 
 export interface Scene {
   scene_number: number;
-  scene_role: 'HOOK' | 'CONTEXT' | 'SHIFT' | 'REVEAL' | 'CONSEQUENCE' | 'FUTURE' | 'CTA';
+  scene_role: string; // Dynamic roles: DECISION_ROOM, MONEY_FLOW, WHO_PAYS, INVISIBLE_COST, BIGGER_QUESTION
   narrative_section: string;
   setting: string;
   dialog: string;
@@ -64,6 +64,7 @@ export interface StoryMetadata {
   keywords: string;
   analytical_summary: string;
   thesis_statement: string;
+  manifesto_spine: string;
   thinking_framework?: ThinkingFramework;
   seo_analysis?: SeoAnalysis;
   resolved_niche?: {

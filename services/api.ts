@@ -1,34 +1,45 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { StoryInput, Storyboard, Scene } from "../types.ts";
+import { CHARACTERS } from "../constants.ts";
 
 export const generateStoryboard = async (input: StoryInput): Promise<Storyboard> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const ratio = input.video_format === 'long' ? '16:9' : '9:16';
   
+  const charRef = CHARACTERS.map(c => `${c.name}: ${c.appearance}`).join(" | ");
+
   const systemInstruction = `You are the 'Karakter Paten V9' Documentary Intelligence Engine.
   
-  PERMANENT CHANNEL HALLMARK (VO CHARACTER):
-  The Voice Over (VO) MUST be: Authoritative, calm, intellectually dense (140 WPM), and highly analytical. 
-  Consistency is key for channel branding. Start with a "Thesis Anchor".
-  
-  GROK-OPTIMIZED VISUAL PROMPT ENGINE:
-  Visual prompts must be strictly compatible with Grok's image generation logic.
-  - RULE 1: VISUAL CONTINUITY. Scene 1 and Scene 2+ MUST maintain the same 3D Claymation style, lighting, and character appearance.
-  - RULE 2: CHARACTER PERSISTENCE. Always describe the fixed characters (Emma, Pap, Athaya, Nda) with identical keywords in every segment prompt to ensure they look the same across the storyboard.
-  - RULE 3: STYLE SEEDING. Use keywords: "Professional 3D Stylized Realism, PolyMatter visual style, Octane 8k render, soft cinematic studio lighting, consistent clay-texture materials".
+  EDITORIAL SPINE (CHANNEL MANIFESTO):
+  - Voice: Neutral, Skeptical of instant fixes, Pro-Stability, Pro-Literacy.
+  - Character: Authoritative, calm, intellectually dense (140 WPM).
+  - Mission: Analyze systemic mechanisms and costs, not individual blame.
+  - Monetization: High-value educational depth only. No generic clickbait.
 
-  PRODUCTION LOGIC:
-  1. HYBRID: High-density data overlays, systemic charts, and topological maps integrated into the 3D scene.
-  2. HUMAN: Deep family-analytical storytelling focusing on social ethics and character interactions.
+  LONG VIDEO ARCHETYPES (STRICT 5-ACT FLOW):
+  1. THE DECISION ROOM: Elegant hook (0-5s). Contrast facts, silent but heavy questions.
+  2. THE MONEY FLOW MAP: Systemic framing. Why it matters globally/personally.
+  3. WHO PAYS THE BILL: Core insight. Human impact of the systemic decision.
+  4. THE INVISIBLE COST: Twist. Unexpected facts/hidden consequences.
+  5. THE BIGGER QUESTION: Resolution/Reflective CTA.
 
-  MONETIZATION SAFETY: Ensure high-value educational depth to avoid 'low-effort' or 'repetitive content' flags.`;
+  SHORT VIDEO (CLAY ANIMATION FLOW):
+  1. VISUAL HOOK: Unique clay movement/transformation.
+  2. CONFLICT SETUP: Problems symbolized (e.g., wallet thinning, tilted building).
+  3. CORE IDEA: One sharp insight with metaphor.
+  4. VISUAL TWIST: Solution turns into burden or fun transformation.
+  5. ELEGANT CLOSING: Slow movement, reflective narrative.
+
+  GROK-OPTIMIZED CONTINUITY ENGINE:
+  - Every visual prompt MUST share the same SEED setup: "Professional 3D Stylized Realism, PolyMatter visual flow, soft cinematic studio lighting, volumetric clay textures, 8k".
+  - CHARACTER LOCK: Use identical descriptions for characters: ${charRef}.
+  - NO TEXT: Do not generate text inside images.`;
 
   const prompt = `INITIATE V9 PRODUCTION
-  Type: ${input.story_type}
-  Logic: ${input.story_type === 'hybrid' ? 'Data-rich Information Mapping' : 'Family Education Deep Dive'}
-  Concept: ${input.input_type === 'link' ? input.news_link : input.story_concept}
   Format: ${input.video_format} (${ratio})
+  Type: ${input.story_type}
+  Concept: ${input.input_type === 'link' ? input.news_link : input.story_concept}
   Language: ${input.language}
   Segments: ${input.scene_count}
 
@@ -37,7 +48,8 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
     "storyboard_title": "...",
     "metadata": {
       "thesis_statement": "...",
-      "resolved_niche": { "ui_category": "${input.category_niche}", "youtube_niche": "...", "authority_cluster": "..." },
+      "manifesto_spine": "Pro-literasi ekonomi, skeptis instan, pro-stabilitas.",
+      "resolved_niche": { "ui_category": "${input.category_niche}", "youtube_niche": "Analytical Documentary" },
       "thinking_framework": { "macro_context": "...", "causal_chain": [], "hidden_mechanism": "...", "contrarian_angle": "...", "future_projection": "..." },
       "seo_analysis": { "title_candidates": [], "selected_title": "...", "keyword_cluster": {}, "ctr_formula": "..." },
       "analytical_summary": "...",
@@ -48,26 +60,26 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
     "scenes": [
       {
         "scene_number": 1,
-        "scene_role": "HOOK",
+        "scene_role": "${input.video_format === 'long' ? 'DECISION_ROOM' : 'VISUAL_HOOK'}",
         "narrative_section": "...",
         "setting": "...",
-        "dialog": "Permanent VO Script (Authouritative & Calm)...",
+        "dialog": "Permanent VO Script...",
         "actions": "...",
         "emotion": "...",
         "visual_notes": "...",
-        "grok_prompt": "3D Stylized Realism, PolyMatter style. [Character Name] with [Description from constants.ts]. ${input.story_type === 'hybrid' ? 'Complex 3D data map floating in air' : 'Educational cinematic setup'}. Soft studio lighting, clay-like textures, 8k render.",
+        "grok_prompt": "3D Stylized Realism, PolyMatter style. [Character Name + Description]. [Action based on role]. Soft studio lighting, 8k.",
         "ctr_message": "..."
       }
     ],
     "shorts": [
       {
         "id": 1,
-        "short_intent": "CURIOSITY",
-        "narration": "Permanent VO Short Script...",
+        "short_intent": "THE_COST",
+        "narration": "...",
         "emotion": "...",
         "purpose": "...",
         "visual_logic": "...",
-        "video_production_prompt": "3D Stylized Realism, PolyMatter style. [Character] in [Setting]. Cinematic lighting.",
+        "video_production_prompt": "3D Stylized Realism, PolyMatter style. [Character]. [Transformation Action].",
         "source_scene": 1
       }
     ]
@@ -82,8 +94,7 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
     },
   });
 
-  const text = response.text || "{}";
-  const data = JSON.parse(text);
+  const data = JSON.parse(response.text || "{}");
   
   return {
     storyboard_title: data.storyboard_title || "Untitled V9 Production",
@@ -102,13 +113,11 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
 export const generateAdditionalScene = async (storyboard: Storyboard, language: string): Promise<Scene> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const lastScene = storyboard.scenes[storyboard.scenes.length - 1];
-  const nextRole = lastScene.scene_role === 'HOOK' ? 'CONTEXT' : 'REVEAL';
   
   const prompt = `V9 ADAPTIVE ENGINE: Continue production "${storyboard.storyboard_title}". 
-  Story Type: ${storyboard.story_type}. Maintain PERMANENT VO CHARACTER.
-  Maintain STRICT VISUAL CONTINUITY with Segment ${lastScene.scene_number}. Use identical character descriptions and lighting setups for Grok compatibility.
-  Return JSON for Scene ${lastScene.scene_number + 1} with role ${nextRole}.
-  Language: ${language}.`;
+  Maintain PERMANENT VO CHARACTER (Authoritative, Calm).
+  Maintain STRICT VISUAL CONTINUITY with Segment ${lastScene.scene_number}. Use identical Grok prompts logic.
+  Return JSON for Scene ${lastScene.scene_number + 1}. Language: ${language}.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
@@ -122,7 +131,8 @@ export const generateAdditionalScene = async (storyboard: Storyboard, language: 
 
 export const generateSceneImage = async (scene: Scene, aspectRatio: string, storyType: string): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const finalPrompt = `V9 MASTER ASSET: ${scene.grok_prompt}. Professional 3D Stylized Realism, PolyMatter style, Octane 8k render, soft studio lighting, high-quality clay textures, no text.`;
+  const typeContext = storyType === 'hybrid' ? 'Data-rich documentary infographics' : 'High-depth family education analytics';
+  const finalPrompt = `V9 ASSET: ${scene.grok_prompt}. ${typeContext}. 3D Stylized Realism, PolyMatter style, Octane 8k render, no text, volumetric soft lighting.`;
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: { parts: [{ text: finalPrompt }] },
@@ -144,18 +154,13 @@ export const generateThumbnailImage = async (
   sampleHook?: string
 ): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const prompt = `V9 THUMBNAIL ENGINE: Style ${styleId}. Subject: ${title}. Professional YouTube Reality aesthetic, stylized 3D Realism, 8k, no text, cinematic lighting. ${sampleHook ? `Context: ${sampleHook}` : ''}`;
+  const prompt = `V9 THUMBNAIL: Style ${styleId}. Subject: ${title}. ${storyType === 'hybrid' ? 'Data systemic visual' : 'Analytical family education'}. Professional 3D Stylized Realism, 8k, no text, high-contrast cinematic lighting. ${sampleHook ? `Context: ${sampleHook}` : ''}`;
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: { parts: [{ text: prompt }] },
     config: { imageConfig: { aspectRatio: aspectRatio as any } }
   });
-  for (const part of response.candidates?.[0]?.content?.[0]?.parts || []) {
-    if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
-  }
-  // Fallback check for different API response structures
-  const parts = response.candidates?.[0]?.content?.parts || [];
-  for (const part of parts) {
+  for (const part of response.candidates?.[0]?.content?.parts || []) {
     if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
   }
   throw new Error("V9 Engine: Thumbnail Rendering Failed.");
