@@ -6,24 +6,51 @@ export interface Character {
   avatarColor: string;
 }
 
+export interface ThinkingFramework {
+  macro_context: string;
+  causal_chain: string[];
+  hidden_mechanism: string;
+  contrarian_angle: string;
+  future_projection: string;
+}
+
+export interface SeoAnalysis {
+  title_candidates: {
+    title: string;
+    score: number;
+    reason: string;
+  }[];
+  selected_title: string;
+  keyword_cluster: {
+    primary: string;
+    secondary: string[];
+    long_tail: string[];
+  };
+  ctr_formula: string;
+}
+
 export interface ShortScript {
   id: number;
-  source_scene: number;
   narration: string;
   emotion: string;
   purpose: string;
   visual_logic: string;
   video_production_prompt: string;
+  source_scene?: number;
+  short_intent: 'CURIOSITY' | 'CONTROVERSY' | 'FUTURE_SHOCK';
 }
 
 export interface Scene {
   scene_number: number;
+  scene_role: 'HOOK' | 'CONTEXT' | 'SHIFT' | 'REVEAL' | 'CONSEQUENCE' | 'FUTURE' | 'CTA';
   narrative_section: string;
   setting: string;
   dialog: string;
   actions: string;
   emotion: string;
   visual_notes: string;
+  grok_prompt: string;
+  duration: number;
   ctr_message?: string; 
   characters?: string[]; 
   visual_image?: string; 
@@ -37,6 +64,13 @@ export interface StoryMetadata {
   keywords: string;
   analytical_summary: string;
   thesis_statement: string;
+  thinking_framework?: ThinkingFramework;
+  seo_analysis?: SeoAnalysis;
+  resolved_niche?: {
+    ui_category: string;
+    youtube_niche: string;
+    authority_cluster: string;
+  };
 }
 
 export interface Storyboard {
@@ -63,43 +97,34 @@ export interface StoryInput {
 }
 
 export const THUMBNAIL_STYLES = [
-  { id: 'conflict', label: 'Konflik & Kontras Ekstrem', desc: 'Dua kekuatan berlawanan dalam satu frame.' },
-  { id: 'shock', label: 'Shock Value', desc: 'Momen mengejutkan atau fakta yang tak terduga.' },
-  { id: 'expression', label: 'Ekspresi Wajah', desc: 'Close-up emosi karakter yang mendalam.' },
-  { id: 'before_after', label: 'Before vs After', desc: 'Perbandingan perubahan drastis.' },
-  { id: 'global', label: 'Global Scale', desc: 'Dampak masif pada skala dunia.' },
+  { id: 'analytical', label: 'Analytical Deep Dive', desc: 'Gaya visual bersih dengan infografis 3D yang elegan.' },
+  { id: 'dramatic', label: 'Cinematic Drama', desc: 'Pencahayaan dramatis dengan fokus pada ekspresi karakter.' },
+  { id: 'conflict', label: 'Konflik Ekstrem', desc: 'Dua kekuatan berlawanan dalam satu frame untuk CTR tinggi.' },
   { id: 'minimalist', label: 'Minimalist Premium', desc: 'Elegan, bersih, dan penuh misteri.' },
-  { id: 'provocative', label: 'Pertanyaan Provokatif', desc: 'Visual yang memicu pertanyaan besar.' }
+  { id: 'neon_tech', label: 'Neon Tech', desc: 'Gaya futuristik dengan aksen cahaya neon.' }
 ];
 
 export const CATEGORIES = [
+  "Ekonomi & Kebijakan",
   "Sejarah & Tragedi",
   "Sains & Inovasi",
-  "Teknologi & Masa Future",
-  "Ekonomi & Kebijakan",
-  "Biografi Tokoh Dunia",
-  "Lingkungan & Krisis",
-  "Kesehatan & Riset",
-  "Budaya & Analisis Sosial"
+  "Budaya & Analisis Sosial",
+  "Teknologi & Masa Depan",
+  "Geopolitik"
 ];
 
 export const AUDIENCES = [
   "Umum (Analytical)",
   "Remaja (Edu-tainment)",
-  "Dewasa (Deep Dive)"
+  "Dewasa (Deep Dive)",
+  "Profesional"
 ];
 
 export const LANGUAGES = [
   "Indonesian",
   "English",
   "Japanese",
-  "Spanish",
-  "Arabic",
-  "Mandarin",
-  "Russian",
-  "German",
-  "French",
-  "Italian"
+  "Spanish"
 ];
 
 export const VIDEO_FORMATS = [

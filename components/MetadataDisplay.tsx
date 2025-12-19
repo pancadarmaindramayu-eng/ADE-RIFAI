@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StoryMetadata } from '../types.ts';
 
 interface MetadataDisplayProps {
@@ -8,46 +8,6 @@ interface MetadataDisplayProps {
 
 export const MetadataDisplay: React.FC<MetadataDisplayProps> = ({ metadata }) => {
   const [copied, setCopied] = useState<string | null>(null);
-  const [scores, setScores] = useState({
-    seo: 0,
-    performance: 0,
-    actionable: 0,
-    total: 0
-  });
-
-  useEffect(() => {
-    // Advanced SEO Scoring for Professional Production V8
-    const titleLower = metadata.viral_title.toLowerCase();
-    const descLower = metadata.long_description.toLowerCase();
-    const keywordList = metadata.keywords.split(',').map(k => k.trim().toLowerCase());
-    const topKeyword = keywordList[0] || "";
-    
-    const inTitle = titleLower.includes(topKeyword);
-    const inDesc = descLower.includes(topKeyword);
-    const inTags = metadata.hashtags.some(t => t.toLowerCase().includes(topKeyword.replace(' ', '')));
-    
-    const longDesc = metadata.long_description.length > 300;
-    const highTagCount = metadata.hashtags.length >= 15;
-    const keywordDensity = keywordList.length >= 10;
-
-    let seoVal = 0;
-    if (inTitle) seoVal += 2;
-    if (inDesc) seoVal += 2;
-    if (inTags) seoVal += 2;
-    if (longDesc) seoVal += 1;
-    if (keywordDensity) seoVal += 1;
-
-    const actionable = (seoVal / 8) * 50; 
-    const performance = (inTitle && inDesc && inTags ? 50 : 30);
-    const total = Math.min(100, Math.floor(actionable + performance));
-    
-    setScores({
-      seo: seoVal,
-      performance,
-      actionable,
-      total
-    });
-  }, [metadata]);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -56,93 +16,123 @@ export const MetadataDisplay: React.FC<MetadataDisplayProps> = ({ metadata }) =>
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden mb-12 shadow-[0_30px_60px_rgba(0,0,0,0.6)] animate-fade-in">
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-10 flex flex-col md:flex-row justify-between items-center gap-8 border-b border-white/10">
+    <div className="bg-slate-900 border border-slate-800 rounded-[3.5rem] overflow-hidden mb-12 shadow-[0_40px_100px_rgba(0,0,0,0.6)] animate-fade-in">
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-10 flex flex-col md:flex-row justify-between items-center border-b border-white/10">
         <div className="flex-1">
-          <h3 className="text-white font-black text-3xl flex items-center gap-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            Production Command Center v8
-          </h3>
-          <p className="text-indigo-100/70 text-sm font-bold mt-2 uppercase tracking-[0.3em]">Thesis-Driven SEO Mastery</p>
+          <h3 className="text-white font-black text-3xl tracking-tighter">Documentary Intelligence Command v9</h3>
+          <p className="text-indigo-100/70 text-xs font-black mt-1 uppercase tracking-[0.4em]">Editor • Strategist • Producer Engine</p>
         </div>
-
-        <div className="flex gap-6">
-          <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-[2rem] border border-white/20 text-center min-w-[140px]">
-            <p className="text-[10px] text-white/60 font-black uppercase tracking-widest mb-1">Production Score</p>
-            <p className="text-4xl font-black text-white">{scores.total}</p>
+        {metadata.resolved_niche && (
+          <div className="mt-6 md:mt-0 flex flex-col items-center md:items-end">
+            <span className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Target Niche</span>
+            <span className="px-4 py-2 bg-black/40 rounded-xl text-xs font-black text-white border border-white/10 uppercase tracking-tighter">{metadata.resolved_niche.youtube_niche}</span>
           </div>
-          <div className={`${scores.seo >= 7 ? 'bg-emerald-500' : 'bg-orange-500'} px-8 py-4 rounded-[2rem] shadow-lg text-center min-w-[140px]`}>
-            <p className="text-[10px] text-white/80 font-black uppercase tracking-widest mb-1">SEO Health</p>
-            <p className="text-4xl font-black text-white">{scores.seo}/8</p>
-          </div>
-        </div>
+        )}
       </div>
 
-      <div className="p-12 space-y-12">
-        <div className="bg-slate-950 p-8 rounded-[2.5rem] border border-slate-800 shadow-inner relative overflow-hidden">
-             <div className="absolute top-0 right-0 px-6 py-2 bg-indigo-600/10 text-indigo-400 text-[9px] font-black uppercase tracking-widest rounded-bl-2xl">Editorial Thesis</div>
-             <p className="text-white text-xl italic font-serif leading-relaxed text-center">"{metadata.thesis_statement}"</p>
-        </div>
+      <div className="p-10 space-y-16">
+        {/* Thinking Engine Block */}
+        {metadata.thinking_framework && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-px bg-slate-800 flex-1"></div>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Thinking Framework v9</span>
+              <div className="w-8 h-px bg-slate-800 flex-1"></div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-black/30 p-8 rounded-[2.5rem] border border-white/5 space-y-4">
+                 <h4 className="text-indigo-400 font-black text-xs uppercase tracking-widest">Macro Context</h4>
+                 <p className="text-slate-300 text-sm leading-relaxed">{metadata.thinking_framework.macro_context}</p>
+                 <div className="pt-4 border-t border-white/5">
+                    <h4 className="text-pink-400 font-black text-xs uppercase tracking-widest mb-3">Causal Chain</h4>
+                    <ul className="space-y-2">
+                      {metadata.thinking_framework.causal_chain.map((step, i) => (
+                        <li key={i} className="flex gap-3 text-xs text-slate-400">
+                          <span className="text-pink-500 font-black">{i + 1}.</span> {step}
+                        </li>
+                      ))}
+                    </ul>
+                 </div>
+              </div>
+              
+              <div className="space-y-8">
+                 <div className="bg-indigo-950/20 p-8 rounded-[2.5rem] border border-indigo-500/10">
+                    <h4 className="text-indigo-400 font-black text-xs uppercase tracking-widest mb-2">Hidden Mechanism</h4>
+                    <p className="text-white text-lg font-bold leading-tight">{metadata.thinking_framework.hidden_mechanism}</p>
+                 </div>
+                 <div className="grid grid-cols-2 gap-6">
+                    <div className="bg-amber-950/20 p-6 rounded-[2rem] border border-amber-500/10">
+                      <h4 className="text-amber-500 font-black text-[9px] uppercase tracking-widest mb-2">Contrarian Angle</h4>
+                      <p className="text-slate-300 text-[11px] leading-snug">{metadata.thinking_framework.contrarian_angle}</p>
+                    </div>
+                    <div className="bg-emerald-950/20 p-6 rounded-[2rem] border border-emerald-500/10">
+                      <h4 className="text-emerald-500 font-black text-[9px] uppercase tracking-widest mb-2">Future Projection</h4>
+                      <p className="text-slate-300 text-[11px] leading-snug">{metadata.thinking_framework.future_projection}</p>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* SEO Scoring Engine Block */}
+        {metadata.seo_analysis && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-px bg-slate-800 flex-1"></div>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">SEO Scoring Engine Analysis</span>
+              <div className="w-8 h-px bg-slate-800 flex-1"></div>
+            </div>
+
+            <div className="bg-black/40 p-10 rounded-[3rem] border border-white/5 space-y-10">
+               <div>
+                  <div className="flex justify-between items-center mb-6">
+                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Winning Selection (Highest CTR Score)</label>
+                     <div className="flex items-center gap-2">
+                        <span className="text-emerald-400 text-xs font-black">Score: {metadata.seo_analysis.title_candidates.find(c => c.title === metadata.seo_analysis?.selected_title)?.score || 99}%</span>
+                        <button onClick={() => copyToClipboard(metadata.seo_analysis?.selected_title || '', 'Title')} className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors ml-4">{copied === 'Title' ? 'Copied' : 'Copy'}</button>
+                     </div>
+                  </div>
+                  <p className="text-4xl font-black text-white leading-none tracking-tighter">{metadata.seo_analysis.selected_title}</p>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-white/5">
+                  <div className="space-y-4">
+                    <h4 className="text-slate-500 font-black text-[10px] uppercase tracking-widest">Candidate Backlog</h4>
+                    <div className="space-y-3">
+                      {metadata.seo_analysis.title_candidates.map((c, i) => (
+                        <div key={i} className="flex justify-between items-center bg-slate-950 p-4 rounded-xl border border-white/5">
+                          <span className="text-xs text-slate-400 truncate max-w-[80%]">{c.title}</span>
+                          <span className="text-[10px] font-black text-indigo-500">{c.score}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-indigo-600/5 p-8 rounded-[2rem] border border-indigo-500/10">
+                    <h4 className="text-indigo-400 font-black text-[10px] uppercase tracking-widest mb-4">CTR Formula Logic</h4>
+                    <p className="text-slate-400 text-xs leading-relaxed italic">"{metadata.seo_analysis.ctr_formula}"</p>
+                  </div>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Global Metadata Footer */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-slate-800/50">
             <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Metadata Quality</label>
-                    <span className="text-indigo-400 font-black">{Math.floor(scores.actionable)}/50</span>
-                </div>
-                <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
-                    <div className="bg-indigo-500 h-full transition-all duration-1000" style={{ width: `${(scores.actionable/50)*100}%` }}></div>
-                </div>
-            </div>
-            <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Visibility Potential</label>
-                    <span className="text-pink-400 font-black">{scores.performance}/50</span>
-                </div>
-                <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
-                    <div className="bg-pink-500 h-full transition-all duration-1000" style={{ width: `${(scores.performance/50)*100}%` }}></div>
-                </div>
-            </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-12">
-            <div>
-                <div className="flex justify-between items-center mb-4">
-                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Viral Title (SEO Locked)</label>
-                    <button onClick={() => copyToClipboard(metadata.viral_title, 'Title')} className="text-xs font-black text-indigo-400 bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20">{copied === 'Title' ? 'Copied!' : 'Copy'}</button>
-                </div>
-                <p className="text-3xl font-black text-white bg-slate-950 p-8 rounded-[2.5rem] border border-slate-800 shadow-inner leading-tight tracking-tighter">{metadata.viral_title}</p>
-            </div>
-
-            <div>
-                <div className="flex justify-between items-center mb-4">
-                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Master Narration Description</label>
-                    <button onClick={() => copyToClipboard(metadata.long_description, 'Description')} className="text-xs font-black text-indigo-400 bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20">{copied === 'Description' ? 'Copied!' : 'Copy'}</button>
-                </div>
-                <div className="bg-slate-950 p-8 rounded-[2.5rem] border border-slate-800 shadow-inner max-h-64 overflow-y-auto text-slate-300 text-base leading-relaxed whitespace-pre-wrap font-medium">{metadata.long_description}</div>
-            </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div>
-                <div className="flex justify-between items-center mb-4">
-                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Master Keywords</label>
-                    <button onClick={() => copyToClipboard(metadata.keywords, 'Keywords')} className="text-xs font-black text-indigo-400">Copy All</button>
-                </div>
-                <div className="flex flex-wrap gap-3 p-6 bg-slate-950 rounded-[2rem] border border-slate-800 shadow-inner">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Master Keywords</label>
+                <div className="flex flex-wrap gap-2">
                     {metadata.keywords.split(',').map((kw, i) => (
-                        <span key={i} className="text-[11px] px-4 py-2 bg-indigo-950/40 text-indigo-300 rounded-xl border border-indigo-500/20 font-black uppercase tracking-widest">{kw.trim()}</span>
+                        <span key={i} className="text-[10px] px-3 py-1.5 bg-slate-950 text-slate-400 rounded-lg border border-white/5 font-bold uppercase tracking-widest">{kw.trim()}</span>
                     ))}
                 </div>
             </div>
-            <div>
-                <div className="flex justify-between items-center mb-4">
-                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Viral Growth Tags</label>
-                    <button onClick={() => copyToClipboard(metadata.hashtags.join(' '), 'Tags')} className="text-xs font-black text-indigo-400">Copy All</button>
-                </div>
-                <div className="flex flex-wrap gap-3 p-6 bg-slate-950 rounded-[2rem] border border-slate-800 shadow-inner">
+            <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Viral Cluster Tags</label>
+                <div className="flex flex-wrap gap-2">
                     {metadata.hashtags.map((tag, i) => (
-                        <span key={i} className="text-[11px] px-4 py-2 bg-pink-950/40 text-pink-300 rounded-xl border border-pink-500/20 font-black uppercase tracking-widest">#{tag.replace('#', '')}</span>
+                        <span key={i} className="text-[10px] px-3 py-1.5 bg-pink-900/10 text-pink-400 rounded-lg border border-pink-500/10 font-bold uppercase tracking-widest">#{tag.replace('#', '')}</span>
                     ))}
                 </div>
             </div>

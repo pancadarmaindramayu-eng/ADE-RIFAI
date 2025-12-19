@@ -6,26 +6,26 @@ export const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3
 export const CHARACTERS: Character[] = [
   {
     name: "Emma",
-    appearance: "3D Clay style, young woman, analytical expression, professional casual attire, detailed hair textures.",
-    personality: "Strategic, curious, and data-driven.",
+    appearance: "Professional 3D claymation style: Smart attire, expressive eyes, sleek brown hair, high-quality material textures, 8k render.",
+    personality: "Strategic, curious, and fast-talking analytical thinker.",
     avatarColor: "bg-indigo-500"
   },
   {
     name: "Pap",
-    appearance: "3D Clay style, middle-aged man, thick glasses, asymmetrical mustache, intellectual look.",
-    personality: "Experienced, skeptical, and thorough.",
+    appearance: "Professional 3D claymation style: Mature features, classic glasses, grey-tinged hair, textured suit, authoritative posture.",
+    personality: "Experienced, skeptical, and provides historical context.",
     avatarColor: "bg-amber-500"
   },
   {
     name: "Athaya",
-    appearance: "3D Clay style, teenager, creative look, expressive eyes, modern accessories.",
-    personality: "Innovative, tech-savvy, and visionary.",
+    appearance: "Professional 3D claymation style: Youthful energy, modern tech-wear, vibrant facial expressions, cinematic lighting.",
+    personality: "Innovative, tech-savvy, and focused on future implications.",
     avatarColor: "bg-emerald-500"
   },
   {
     name: "Nda",
-    appearance: "3D Clay style, woman with elegant hijab, kind but firm expression, professional poise.",
-    personality: "Wise, balanced, and empathetic.",
+    appearance: "Professional 3D claymation style: Elegant modern hijab, balanced features, soft but focused lighting, poised demeanor.",
+    personality: "Wise, balanced, and provides ethical/social oversight.",
     avatarColor: "bg-rose-500"
   }
 ];
