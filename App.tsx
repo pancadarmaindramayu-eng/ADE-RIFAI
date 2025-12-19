@@ -5,7 +5,7 @@ import { MetadataDisplay } from './components/MetadataDisplay.tsx';
 import { ThumbnailGenerator } from './components/ThumbnailGenerator.tsx';
 import { StoryInput, Storyboard, Scene, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types.ts';
 import { CHARACTERS } from './constants.ts';
-import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/api.ts';
+import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/geminiService.ts';
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<StoryInput>({
@@ -60,9 +60,6 @@ const App: React.FC = () => {
     });
   };
 
-  /* =========================
-     GENERATE STORYBOARD
-     ========================= */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -85,9 +82,6 @@ const App: React.FC = () => {
     setTimeout(() => setCopiedPromptId(null), 2000);
   };
 
-  /* =========================
-     ADD SCENE
-     ========================= */
   const handleAddSceneAI = async () => {
     if (!storyboard) return;
     setAddingScene(true);
@@ -111,9 +105,6 @@ const App: React.FC = () => {
     setStoryboard({ ...storyboard, scenes: newScenes });
   };
 
-  /* =========================
-     GENERATE MASTER IMAGE
-     ========================= */
   const handleGenerateMasterOnly = async () => {
     if (!storyboard) return;
     setGeneratingMaster(true);

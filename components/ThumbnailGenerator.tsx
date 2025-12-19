@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { THUMBNAIL_STYLES, Storyboard } from '../types.ts';
-import { generateThumbnailImage } from '../services/api.ts';
+import { generateThumbnailImage } from '../services/geminiService.ts';
 
 interface ThumbnailGeneratorProps {
   storyboard: Storyboard;
