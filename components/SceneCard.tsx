@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Scene } from '../types.ts';
-import { generateSceneImage } from '../services/geminiService.ts';
+import { generateSceneImage } from '../services/api.ts';
 
 interface SceneCardProps {
   scene: Scene;

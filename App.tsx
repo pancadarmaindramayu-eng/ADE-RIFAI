@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header.tsx';
 import { SceneCard } from './components/SceneCard.tsx';
 import { MetadataDisplay } from './components/MetadataDisplay.tsx';
 import { ThumbnailGenerator } from './components/ThumbnailGenerator.tsx';
 import { StoryInput, Storyboard, Scene, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types.ts';
 import { CHARACTERS } from './constants.ts';
-import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/geminiService.ts';
+import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/api.ts';
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<StoryInput>({
@@ -28,6 +28,23 @@ const App: React.FC = () => {
   const [copiedPromptId, setCopiedPromptId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [generatingMaster, setGeneratingMaster] = useState(false);
+  const [showKeyPicker, setShowKeyPicker] = useState(false);
+
+  useEffect(() => {
+    const checkKey = async () => {
+      if (window.aistudio && !await window.aistudio.hasSelectedApiKey() && !process.env.API_KEY) {
+        setShowKeyPicker(true);
+      }
+    };
+    checkKey();
+  }, []);
+
+  const handleOpenKeyPicker = async () => {
+    if (window.aistudio) {
+      await window.aistudio.openSelectKey();
+      setShowKeyPicker(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -70,7 +87,12 @@ const App: React.FC = () => {
       setStoryboard(result);
     } catch (err: any) {
       console.error("Submission Error:", err);
-      setError(err.message || "Engine Error: Connection failed. Check API Key configuration.");
+      if (err.message?.includes("Requested entity was not found") && window.aistudio) {
+        setShowKeyPicker(true);
+        setError("API Key Error: Please re-select your paid API key.");
+      } else {
+        setError(err.message || "Engine Error: Connection failed. Check API Key configuration.");
+      }
     } finally {
       setLoading(false);
     }
@@ -124,6 +146,22 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#020617] pb-24 selection:bg-indigo-500/30">
       <Header />
+      
+      {showKeyPicker && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-6">
+          <div className="bg-slate-900 border border-slate-800 p-12 rounded-[3rem] max-w-lg w-full text-center shadow-2xl">
+            <h2 className="text-3xl font-black text-white mb-6 tracking-tighter">Paid API Key Required</h2>
+            <p className="text-slate-400 mb-8 leading-relaxed">
+              To use the Gemini 3 Pro documentary engine, you must select a paid API key from a project with billing enabled.
+            </p>
+            <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="text-indigo-400 text-sm font-bold block mb-10 hover:underline">Learn more about billing</a>
+            <button onClick={handleOpenKeyPicker} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-5 rounded-2xl transition-all uppercase tracking-widest">
+              Select API Key
+            </button>
+          </div>
+        </div>
+      )}
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <section className="mb-20">
             <div className="max-w-4xl mx-auto">

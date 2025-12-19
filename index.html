@@ -6,8 +6,8 @@
     <title>Karakter Paten v8 | Documentary Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // Shim to prevent "process is not defined" error in the browser
-      window.process = { env: { API_KEY: "" } };
+      // Shim to prevent "process is not defined" error without overwriting potential env variables
+      window.process = window.process || { env: {} };
     </script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
