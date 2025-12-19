@@ -25,11 +25,19 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
   5. THE BIGGER QUESTION: Resolution/Reflective CTA.
 
   SHORT VIDEO (CLAY ANIMATION FLOW):
-  1. VISUAL HOOK: Unique clay movement/transformation.
-  2. CONFLICT SETUP: Problems symbolized (e.g., wallet thinning, tilted building).
-  3. CORE IDEA: One sharp insight with metaphor.
-  4. VISUAL TWIST: Solution turns into burden or fun transformation.
-  5. ELEGANT CLOSING: Slow movement, reflective narrative.
+  1. VISUAL HOOK: Unique clay movement/transformation (0-3s).
+  2. CONFLICT SETUP: Problems symbolized (3-8s).
+  3. CORE IDEA: One sharp insight with metaphor (8-18s).
+  4. VISUAL TWIST: Transformation (18-28s).
+  5. ELEGANT CLOSING: Slow movement, reflective narrative (28-35s).
+
+  VIRAL SHORTS STRATEGY (GENERATE EXACTLY 6 SHORTS):
+  Short 1 (THE COST): Focus on who pays the price.
+  Short 2 (THE IRONY): Focus on counter-intuitive outcomes.
+  Short 3 (THE HIDDEN CLAUSE): Focus on parts rarely discussed.
+  Short 4 (THE SYSTEMIC SHIFT): Focus on how the world changes.
+  Short 5 (THE HUMAN ECHO): Focus on the family impact (using characters).
+  Short 6 (THE FUTURE TRAP): Focus on long-term consequences.
 
   GROK-OPTIMIZED CONTINUITY ENGINE:
   - Every visual prompt MUST share the same SEED setup: "Professional 3D Stylized Realism, PolyMatter visual flow, soft cinematic studio lighting, volumetric clay textures, 8k".
@@ -42,6 +50,8 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
   Concept: ${input.input_type === 'link' ? input.news_link : input.story_concept}
   Language: ${input.language}
   Segments: ${input.scene_count}
+
+  REQUEST: Generate the full storyboard AND exactly 6 Viral Shorts.
 
   RETURN JSON PACKAGE:
   {
@@ -81,7 +91,12 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
         "visual_logic": "...",
         "video_production_prompt": "3D Stylized Realism, PolyMatter style. [Character]. [Transformation Action].",
         "source_scene": 1
-      }
+      },
+      {"id": 2, "short_intent": "THE_IRONY", "narration": "...", "video_production_prompt": "..."},
+      {"id": 3, "short_intent": "HIDDEN_CLAUSE", "narration": "...", "video_production_prompt": "..."},
+      {"id": 4, "short_intent": "THE_COST", "narration": "...", "video_production_prompt": "..."},
+      {"id": 5, "short_intent": "THE_IRONY", "narration": "...", "video_production_prompt": "..."},
+      {"id": 6, "short_intent": "HIDDEN_CLAUSE", "narration": "...", "video_production_prompt": "..."}
     ]
   }`;
 
