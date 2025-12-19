@@ -20,7 +20,8 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
   const ratio = input.video_format === 'long' ? '16:9' : '9:16';
   
   const systemInstruction = `
-    You are a world-class documentary director specializing in high-impact economic and sociological storytelling.
+    You are a professional economic documentary engine. 
+    You specialize in high-impact economic and sociological storytelling similar to PolyMatter or Wendover.
     Your tone is: Calm, authoritative, analytical, and cinematic.
 
     [DNA CONSISTENCY FOR HUMAN MODE]
@@ -28,7 +29,7 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
     ${CHARACTERS.map(c => `- ${c.name}: ${c.appearance}`).join('\n')}
 
     [STRUCTURE]
-    Generate a full production storyboard with ${input.scene_count} segments.
+    Generate a full production storyboard with ${input.scene_count} segments in STRICT JSON ONLY.
     Each segment must follow a logical narrative flow (Intro, Context, Problem, Data, Analysis, Impact, Future, CTA).
 
     [SHORTS LOGIC]
@@ -42,61 +43,44 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
     Format: ${input.video_format === 'long' ? 'Long-form Cinematic (16:9)' : 'Short-form Vertical (9:16)'}
     Mode: ${input.story_type}
     Category: ${input.category_niche}
-  `;
-
-  const responseSchema = {
-    type: Type.OBJECT,
-    properties: {
-      storyboard_title: { type: Type.STRING },
-      metadata: {
-        type: Type.OBJECT,
-        properties: {
-          thesis_statement: { type: Type.STRING },
-          viral_title: { type: Type.STRING },
-          long_description: { type: Type.STRING },
-          hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
-          keywords: { type: Type.STRING },
-          analytical_summary: { type: Type.STRING }
-        },
-        required: ["thesis_statement", "viral_title", "long_description", "hashtags", "keywords", "analytical_summary"]
+    
+    OUTPUT FORMAT (JSON ONLY):
+    {
+      "storyboard_title": "string",
+      "metadata": {
+        "thesis_statement": "string",
+        "viral_title": "string",
+        "long_description": "string",
+        "hashtags": ["string"],
+        "keywords": "string",
+        "analytical_summary": "string"
       },
-      scenes: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            scene_number: { type: Type.INTEGER },
-            narrative_section: { type: Type.STRING },
-            setting: { type: Type.STRING },
-            dialog: { type: Type.STRING },
-            actions: { type: Type.STRING },
-            emotion: { type: Type.STRING },
-            visual_notes: { type: Type.STRING },
-            ctr_message: { type: Type.STRING },
-            characters: { type: Type.ARRAY, items: { type: Type.STRING } }
-          },
-          required: ["scene_number", "narrative_section", "setting", "dialog", "actions", "emotion", "visual_notes", "ctr_message", "characters"],
-        },
-      },
-      shorts: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            id: { type: Type.INTEGER },
-            source_scene: { type: Type.INTEGER },
-            narration: { type: Type.STRING },
-            emotion: { type: Type.STRING },
-            purpose: { type: Type.STRING },
-            visual_logic: { type: Type.STRING },
-            video_production_prompt: { type: Type.STRING }
-          },
-          required: ["id", "source_scene", "narration", "emotion", "purpose", "visual_logic", "video_production_prompt"]
+      "scenes": [
+        {
+          "scene_number": number,
+          "narrative_section": "string",
+          "setting": "string",
+          "dialog": "string",
+          "actions": "string",
+          "emotion": "string",
+          "visual_notes": "string",
+          "ctr_message": "string",
+          "characters": ["string"]
         }
-      }
-    },
-    required: ["storyboard_title", "metadata", "scenes", "shorts"],
-  };
+      ],
+      "shorts": [
+        {
+          "id": number,
+          "source_scene": number,
+          "narration": "string",
+          "emotion": "string",
+          "purpose": "string",
+          "visual_logic": "string",
+          "video_production_prompt": "string"
+        }
+      ]
+    }
+  `;
 
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-preview",
@@ -104,7 +88,6 @@ export const generateStoryboard = async (input: StoryInput): Promise<Storyboard>
     config: {
       systemInstruction,
       responseMimeType: "application/json",
-      responseSchema,
     },
   });
 

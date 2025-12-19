@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
 import { THUMBNAIL_STYLES, Storyboard } from '../types.ts';
-
-/* Helper for server API calls */
-async function postJSON<T>(url: string, body: any): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Server execution failed' }));
-    throw new Error(err.error || 'Server execution failed');
-  }
-  return res.json();
-}
+import { generateThumbnailImage } from '../services/api.ts';
 
 interface ThumbnailGeneratorProps {
   storyboard: Storyboard;
@@ -27,15 +14,15 @@ export const ThumbnailGenerator: React.FC<ThumbnailGeneratorProps> = ({ storyboa
   const handleGenerate = async (styleId: string) => {
     setLoading(prev => ({ ...prev, [styleId]: true }));
     try {
-      const url = await postJSON<string>('/api/thumbnail', {
+      const url = await generateThumbnailImage(
         styleId,
-        title: storyboard.storyboard_title,
-        summary: storyboard.metadata.analytical_summary,
-        characters: storyboard.scenes[0].characters || [],
-        aspectRatio: storyboard.image_ratio,
-        storyType: storyboard.story_type,
+        storyboard.storyboard_title,
+        storyboard.metadata.analytical_summary,
+        storyboard.scenes[0].characters || [],
+        storyboard.image_ratio,
+        storyboard.story_type,
         sampleHook
-      });
+      );
       setThumbs(prev => ({ ...prev, [styleId]: url }));
     } catch (err) {
       console.error(err);

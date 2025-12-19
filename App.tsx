@@ -5,25 +5,7 @@ import { MetadataDisplay } from './components/MetadataDisplay.tsx';
 import { ThumbnailGenerator } from './components/ThumbnailGenerator.tsx';
 import { StoryInput, Storyboard, Scene, CATEGORIES, AUDIENCES, LANGUAGES, VIDEO_FORMATS } from './types.ts';
 import { CHARACTERS } from './constants.ts';
-
-/* =========================
-   CLIENT → SERVER API CALLS
-   ========================= */
-
-async function postJSON<T>(url: string, body: any): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Server execution failed' }));
-    throw new Error(err.error || 'Server execution failed');
-  }
-
-  return res.json();
-}
+import { generateStoryboard, generateSceneImage, generateAdditionalScene } from './services/api.ts';
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<StoryInput>({
@@ -87,11 +69,11 @@ const App: React.FC = () => {
     setError(null);
     setStoryboard(null);
     try {
-      const result = await postJSON<Storyboard>('/api/generate', formData);
+      const result = await generateStoryboard(formData);
       setStoryboard(result);
     } catch (err: any) {
       console.error("Submission Error:", err);
-      setError(err.message || "V8 Engine failed. Ensure the server-side API is correctly configured.");
+      setError(err.message || "Engine Error: Connection failed. Check API Key configuration.");
     } finally {
       setLoading(false);
     }
@@ -110,10 +92,7 @@ const App: React.FC = () => {
     if (!storyboard) return;
     setAddingScene(true);
     try {
-      const newScene = await postJSON<Scene>('/api/extend', {
-        storyboard,
-        language: formData.language,
-      });
+      const newScene = await generateAdditionalScene(storyboard, formData.language);
       setStoryboard({
         ...storyboard,
         scenes: [...storyboard.scenes, newScene]
@@ -141,11 +120,7 @@ const App: React.FC = () => {
     const scene1 = storyboard.scenes[0];
     try {
         const ratio = formData.video_format === 'long' ? '16:9' : '9:16';
-        const url = await postJSON<string>('/api/image', {
-          scene: scene1,
-          ratio,
-          storyType: storyboard.story_type,
-        });
+        const url = await generateSceneImage(scene1, ratio, storyboard.story_type);
         handleUpdateScene({ ...scene1, visual_image: url });
     } catch (err: any) {
         console.error("Master image generation failed", err);

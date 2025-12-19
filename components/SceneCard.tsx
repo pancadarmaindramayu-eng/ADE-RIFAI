@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
 import { Scene } from '../types.ts';
-
-/* Helper for server API calls */
-async function postJSON<T>(url: string, body: any): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Server execution failed' }));
-    throw new Error(err.error || 'Server execution failed');
-  }
-  return res.json();
-}
+import { generateSceneImage } from '../services/api.ts';
 
 interface SceneCardProps {
   scene: Scene;
@@ -29,11 +16,7 @@ export const SceneCard: React.FC<SceneCardProps> = ({ scene, onUpdateScene, rati
   const handleRender = async () => {
     setRendering(true);
     try {
-      const url = await postJSON<string>('/api/image', {
-        scene,
-        ratio,
-        storyType
-      });
+      const url = await generateSceneImage(scene, ratio, storyType);
       onUpdateScene({ ...scene, visual_image: url });
     } catch (err) {
       console.error(err);
